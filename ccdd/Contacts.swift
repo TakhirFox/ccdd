@@ -13,7 +13,7 @@ struct Contacts: Decodable {
 
 struct ContactsItem: Decodable {
     let id: String?
-    let avatarURL: String?
+    let avatarUrl: String?
     let firstName: String?
     let lastName: String?
     let userTag: String?
