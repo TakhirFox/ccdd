@@ -8,8 +8,16 @@
 import UIKit
 
 class ContactsController: UITableViewController {
-
+    
     var contacts = [ContactsItem]()
+    
+    lazy var refreshController: UIRefreshControl = {
+        let view = UIRefreshControl()
+        view.addTarget(self, action: #selector(updatePage), for: .valueChanged)
+        return view
+    }()
+    
+    var searchController = UISearchController(searchResultsController: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,10 +25,24 @@ class ContactsController: UITableViewController {
         setupView()
         
         fetchData()
+        
+        setupSearch()
     }
     
     private func setupView() {
         tableView.register(ContactCell.self, forCellReuseIdentifier: "cell")
+        tableView.refreshControl = refreshController
+    }
+    
+    private func setupSearch() {
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.placeholder = "Введи имя, тег, почту..."
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.setImage(UIImage(named: "searchFilter"), for: .bookmark, state: .normal)
+        searchController.searchBar.delegate = self
+        searchController.searchBar.showsBookmarkButton = true
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
     }
     
     func fetchData() {
@@ -31,7 +53,7 @@ class ContactsController: UITableViewController {
             guard let data = data else {
                 return
             }
-                        
+            
             do {
                 let json = try JSONDecoder().decode(Contacts.self, from: data)
                 
@@ -47,7 +69,7 @@ class ContactsController: UITableViewController {
             
         }.resume()
     }
-
+    
 }
 
 // MARK: - tableView delegate and dataSource methods
@@ -82,3 +104,23 @@ extension ContactsController {
     
 }
 
+
+// MARK: - Actions
+extension ContactsController {
+    @objc func updatePage() {
+        self.refreshController.endRefreshing()
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+
+extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
+    func updateSearchResults(for searchController: UISearchController) {
+        let text = searchController.searchBar.text ?? ""
+        print(text)
+    }
+    
+    func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
+        print("Вызываем боттом щит")
+    }
+}
