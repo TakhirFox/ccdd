@@ -10,6 +10,7 @@ import UIKit
 class ContactsController: UITableViewController {
     
     var contacts = [ContactsItem]()
+    private var resultContacts = [ContactsItem]()
     
     lazy var refreshController: UIRefreshControl = {
         let view = UIRefreshControl()
@@ -18,6 +19,15 @@ class ContactsController: UITableViewController {
     }()
     
     var searchController = UISearchController(searchResultsController: nil)
+    
+    var searchBarIsEmpty: Bool {
+        guard let text = searchController.searchBar.text else { return false}
+        return text.isEmpty
+    }
+
+    private var isFiltering: Bool {
+        return searchController.isActive && !searchBarIsEmpty
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +53,7 @@ class ContactsController: UITableViewController {
         searchController.searchBar.showsBookmarkButton = true
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
+        definesPresentationContext = true
     }
     
     func fetchData() {
@@ -75,13 +86,23 @@ class ContactsController: UITableViewController {
 // MARK: - tableView delegate and dataSource methods
 extension ContactsController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isFiltering {
+            return resultContacts.count
+        }
         return contacts.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContactCell
         
-        let contact = contacts[indexPath.row]
+        var contact: ContactsItem
+        
+        if isFiltering {
+            contact = resultContacts[indexPath.row]
+        } else {
+            contact = contacts[indexPath.row]
+        }
+        
         cell.fullName.text = "\(contact.firstName!) \(contact.lastName!)"
         cell.position.text = contact.position
         cell.userTag.text = contact.userTag
@@ -113,14 +134,33 @@ extension ContactsController {
 }
 
 // MARK: - UISearchResultsUpdating
-
 extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
     func updateSearchResults(for searchController: UISearchController) {
         let text = searchController.searchBar.text ?? ""
-        print(text)
+        filterContentSearchText(text: text)
+    }
+    
+    func filterContentSearchText(text: String) {
+        resultContacts = contacts.filter({ (contact: ContactsItem) in
+            return contact.firstName!.lowercased().contains(text.lowercased())
+            || contact.lastName!.lowercased().contains(text.lowercased())
+            || contact.position!.lowercased().contains(text.lowercased())
+            
+        })
+        
+        tableView.reloadData()
+
     }
     
     func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
-        print("Вызываем боттом щит")
+        let sortController = SortController()
+        let navController = UINavigationController(rootViewController: sortController)
+        
+        if let sheet = navController.presentationController as? UISheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+        }
+        
+        present(navController, animated: true, completion: nil)
     }
 }
