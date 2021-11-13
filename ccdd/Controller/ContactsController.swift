@@ -6,11 +6,13 @@
 //
 
 import UIKit
+import SkeletonView
 
 class ContactsController: UITableViewController {
     
-    var contacts = [ContactsItem]()
+    var contacts: [ContactsItem]?
     private var resultContacts = [ContactsItem]()
+    private var isFirstLoad = false
     
     lazy var refreshController: UIRefreshControl = {
         let view = UIRefreshControl()
@@ -33,11 +35,22 @@ class ContactsController: UITableViewController {
         super.viewDidLoad()
         
         setupView()
-        
-        fetchData()
-        
         setupSearch()
+        fetchData()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        if isFirstLoad == false {
+            tableView.isSkeletonable = true
+            tableView.showAnimatedGradientSkeleton(usingGradient: .init(baseColor: .gray, secondaryColor: .lightGray), animation: nil, transition: .crossDissolve(0.2))
+        }
+        
+        
+        
+    }
+
     
     private func setupView() {
         tableView.register(ContactCell.self, forCellReuseIdentifier: "cell")
@@ -70,6 +83,9 @@ class ContactsController: UITableViewController {
                 
                 self.contacts = json.items!
                 DispatchQueue.main.async {
+                    self.tableView.stopSkeletonAnimation()
+                    self.view.hideSkeleton(reloadDataAfter: true, transition: .crossDissolve(0.25))
+                    self.isFirstLoad = true
                     self.tableView.reloadData()
                 }
                 
@@ -89,7 +105,7 @@ extension ContactsController {
         if isFiltering {
             return resultContacts.count
         }
-        return contacts.count
+        return contacts?.count ?? 10
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -100,13 +116,13 @@ extension ContactsController {
         if isFiltering {
             contact = resultContacts[indexPath.row]
         } else {
-            contact = contacts[indexPath.row]
+            contact = contacts?[indexPath.row] ?? ContactsItem(id: "", avatarUrl: "", firstName: "", lastName: "", userTag: "", department: "", position: "", birthday: "", phone: "")
         }
         
         cell.fullName.text = "\(contact.firstName!) \(contact.lastName!)"
         cell.position.text = contact.position
         cell.userTag.text = contact.userTag
-        cell.birthday.text = contact.birthday
+        
         
         DispatchQueue.global().async {
             guard let imageUrl = URL(string: contact.avatarUrl ?? "") else { return }
@@ -116,7 +132,21 @@ extension ContactsController {
             }
         }
         
+        
+        
+        cell.birthday.text = dateFormatter(inputDate: contact.birthday ?? "")
+        
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let controller = ProfileController()
+        
+        guard let contact = contacts else { return }
+        
+        controller.contact = contact[indexPath.row]
+        
+        navigationController?.pushViewController(controller, animated: true)
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -131,6 +161,15 @@ extension ContactsController {
     @objc func updatePage() {
         self.refreshController.endRefreshing()
     }
+    
+    private func dateFormatter(inputDate: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let date = dateFormatter.date(from: inputDate) ?? Date()
+        dateFormatter.dateFormat = "d MMM"
+        dateFormatter.locale = Locale(identifier: "ru_RU")
+        return dateFormatter.string(from: date)
+    }
 }
 
 // MARK: - UISearchResultsUpdating
@@ -141,12 +180,12 @@ extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
     }
     
     func filterContentSearchText(text: String) {
-        resultContacts = contacts.filter({ (contact: ContactsItem) in
+        resultContacts = (contacts?.filter({ (contact: ContactsItem) in
             return contact.firstName!.lowercased().contains(text.lowercased())
             || contact.lastName!.lowercased().contains(text.lowercased())
             || contact.position!.lowercased().contains(text.lowercased())
             
-        })
+        }))!
         
         tableView.reloadData()
 
@@ -162,5 +201,12 @@ extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
         }
         
         present(navController, animated: true, completion: nil)
+    }
+}
+
+
+extension ContactsController: SkeletonTableViewDataSource {
+    func collectionSkeletonView(_ skeletonView: UITableView, cellIdentifierForRowAt indexPath: IndexPath) -> ReusableCellIdentifier {
+        return "cell"
     }
 }
