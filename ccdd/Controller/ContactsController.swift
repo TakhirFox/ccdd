@@ -9,7 +9,8 @@ import UIKit
 import SkeletonView
 
 class ContactsController: UITableViewController {
-    
+
+    var emptyResultView = ContactEmptyResultView()
     var contacts: [ContactsItem]?
     private var resultContacts = [ContactsItem]()
     private var isFirstLoad = false
@@ -26,7 +27,7 @@ class ContactsController: UITableViewController {
         guard let text = searchController.searchBar.text else { return false}
         return text.isEmpty
     }
-
+    
     private var isFiltering: Bool {
         return searchController.isActive && !searchBarIsEmpty
     }
@@ -41,20 +42,18 @@ class ContactsController: UITableViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        emptyResultView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)
         
         if isFirstLoad == false {
-            tableView.isSkeletonable = true
-            tableView.showAnimatedGradientSkeleton(usingGradient: .init(baseColor: .gray, secondaryColor: .lightGray), animation: nil, transition: .crossDissolve(0.2))
+            tableView?.isSkeletonable = true
+            tableView?.showAnimatedGradientSkeleton(usingGradient: .init(baseColor: .gray, secondaryColor: .lightGray), animation: nil, transition: .crossDissolve(0.2))
         }
-        
-        
-        
     }
-
+    
     
     private func setupView() {
-        tableView.register(ContactCell.self, forCellReuseIdentifier: "cell")
-        tableView.refreshControl = refreshController
+        tableView?.register(ContactCell.self, forCellReuseIdentifier: "cell")
+        tableView?.refreshControl = refreshController
     }
     
     private func setupSearch() {
@@ -83,10 +82,10 @@ class ContactsController: UITableViewController {
                 
                 self.contacts = json.items!
                 DispatchQueue.main.async {
-                    self.tableView.stopSkeletonAnimation()
+                    self.tableView?.stopSkeletonAnimation()
                     self.view.hideSkeleton(reloadDataAfter: true, transition: .crossDissolve(0.25))
                     self.isFirstLoad = true
-                    self.tableView.reloadData()
+                    self.tableView?.reloadData()
                 }
                 
             } catch let error {
@@ -103,6 +102,13 @@ class ContactsController: UITableViewController {
 extension ContactsController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isFiltering {
+            
+            if resultContacts.isEmpty {
+                view.addSubview(emptyResultView)
+            } else {
+                emptyResultView.removeFromSuperview()
+            }
+            
             return resultContacts.count
         }
         return contacts?.count ?? 10
@@ -123,7 +129,6 @@ extension ContactsController {
         cell.position.text = contact.position
         cell.userTag.text = contact.userTag
         
-        
         DispatchQueue.global().async {
             guard let imageUrl = URL(string: contact.avatarUrl ?? "") else { return }
             guard let imageData = try? Data(contentsOf: imageUrl) else { return }
@@ -131,8 +136,6 @@ extension ContactsController {
                 cell.avatar.image = UIImage(data: imageData)
             }
         }
-        
-        
         
         cell.birthday.text = dateFormatter(inputDate: contact.birthday ?? "")
         
@@ -159,6 +162,7 @@ extension ContactsController {
 // MARK: - Actions
 extension ContactsController {
     @objc func updatePage() {
+        fetchData()
         self.refreshController.endRefreshing()
     }
     
@@ -184,11 +188,10 @@ extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
             return contact.firstName!.lowercased().contains(text.lowercased())
             || contact.lastName!.lowercased().contains(text.lowercased())
             || contact.position!.lowercased().contains(text.lowercased())
-            
         }))!
         
-        tableView.reloadData()
-
+        tableView?.reloadData()
+        
     }
     
     func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
