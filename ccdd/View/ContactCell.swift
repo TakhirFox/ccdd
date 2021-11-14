@@ -8,7 +8,7 @@
 import UIKit
 import SkeletonView
 
-class ContactCell: UITableViewCell {
+class ContactCell: UICollectionViewCell {
     var avatar: UIImageView = {
         let view = UIImageView()
         view.backgroundColor = .gray
@@ -53,9 +53,9 @@ class ContactCell: UITableViewCell {
         view.textAlignment = .right
         return view
     }()
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         isSkeletonable = true
         setupDisplayViews()
         setupConstaints()
@@ -83,21 +83,21 @@ class ContactCell: UITableViewCell {
                         leading: avatar.trailingAnchor,
                         bottom: position.topAnchor,
                         trailing: userTag.leadingAnchor,
-                        padding: .init(top: frame.size.height / 2 + 10, left: 16, bottom: 2, right: 4),
+                        padding: .init(top: frame.size.height / 2 - 20, left: 16, bottom: 2, right: 4),
                         size: .init(width: 0, height: 0))
 
         userTag.anchor(top: topAnchor,
                        leading: fullName.trailingAnchor,
                        bottom: position.topAnchor,
                        trailing: nil,
-                       padding: .init(top: frame.size.height / 2 + 10, left: 4, bottom: 2, right: 4),
+                       padding: .init(top: frame.size.height / 2 - 20, left: 4, bottom: 2, right: 4),
                        size: .init(width: 0, height: 0))
         
         position.anchor(top: nil,
                         leading: avatar.trailingAnchor,
                         bottom: bottomAnchor,
                         trailing: birthday.leadingAnchor,
-                        padding: .init(top: 2, left: 16, bottom: frame.size.height / 2, right: 4),
+                        padding: .init(top: 2, left: 16, bottom: frame.size.height / 2 - 15, right: 4),
                         size: .init(width: 0, height: 0))
         
         birthday.anchor(top: nil,

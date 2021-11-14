@@ -15,6 +15,7 @@
 		AD39392B273D8AB3006A0CD5 /* ProfileInfoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD39392A273D8AB3006A0CD5 /* ProfileInfoCell.swift */; };
 		AD39392D273D90EE006A0CD5 /* DetailInfoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD39392C273D90EE006A0CD5 /* DetailInfoCell.swift */; };
 		AD9562122740031600D5FAFF /* ContactEmptyResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9562112740031500D5FAFF /* ContactEmptyResultView.swift */; };
+		AD9562162741234500D5FAFF /* MenuContactCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9562152741234500D5FAFF /* MenuContactCell.swift */; };
 		ADB6AD1F27358863002F1C25 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB6AD1E27358863002F1C25 /* Contacts.swift */; };
 		ADB6AD2127358ECA002F1C25 /* ContactCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB6AD2027358ECA002F1C25 /* ContactCell.swift */; };
 		ADB6AD23273592BB002F1C25 /* UIView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB6AD22273592BB002F1C25 /* UIView+Layout.swift */; };
@@ -36,6 +37,7 @@
 		AD39392A273D8AB3006A0CD5 /* ProfileInfoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileInfoCell.swift; sourceTree = "<group>"; };
 		AD39392C273D90EE006A0CD5 /* DetailInfoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailInfoCell.swift; sourceTree = "<group>"; };
 		AD9562112740031500D5FAFF /* ContactEmptyResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactEmptyResultView.swift; sourceTree = "<group>"; };
+		AD9562152741234500D5FAFF /* MenuContactCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContactCell.swift; sourceTree = "<group>"; };
 		ADB6AD1E27358863002F1C25 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		ADB6AD2027358ECA002F1C25 /* ContactCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCell.swift; sourceTree = "<group>"; };
 		ADB6AD22273592BB002F1C25 /* UIView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Layout.swift"; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 				AD39391D273AEB6B006A0CD5 /* SortCell.swift */,
 				AD39392A273D8AB3006A0CD5 /* ProfileInfoCell.swift */,
 				AD39392C273D90EE006A0CD5 /* DetailInfoCell.swift */,
+				AD9562152741234500D5FAFF /* MenuContactCell.swift */,
 				AD9562112740031500D5FAFF /* ContactEmptyResultView.swift */,
 			);
 			path = View;
@@ -285,6 +288,7 @@
 				ADD262292735570F00D8C0AD /* ContactsController.swift in Sources */,
 				AD9562122740031600D5FAFF /* ContactEmptyResultView.swift in Sources */,
 				AD393929273D88AE006A0CD5 /* ProfileController.swift in Sources */,
+				AD9562162741234500D5FAFF /* MenuContactCell.swift in Sources */,
 				ADD262252735570F00D8C0AD /* AppDelegate.swift in Sources */,
 				ADD262272735570F00D8C0AD /* SceneDelegate.swift in Sources */,
 				AD39392D273D90EE006A0CD5 /* DetailInfoCell.swift in Sources */,

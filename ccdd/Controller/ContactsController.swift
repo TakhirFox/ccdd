@@ -8,12 +8,29 @@
 import UIKit
 import SkeletonView
 
-class ContactsController: UITableViewController {
-
+class ContactsController: UIViewController {
+    
     var emptyResultView = ContactEmptyResultView()
+    let sortController = SortController()
     var contacts: [ContactsItem]?
     private var resultContacts = [ContactsItem]()
+    private var categoryFilterContacts = [ContactsItem]()
     private var isFirstLoad = false
+    private var isFilteredByCaregory = false
+    var category = ["Все", "Technician", "Orchestrator", "Strategist", "Executive", "Developer", "Producer", "Agent", "Consultant", "Administrator", "Designer", "Analyst", "Manager", "Coordinator", "Representative", "Supervisor", "Facilitator", "Specialist", "Engineer", "Planner"]
+    
+    let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        return cv
+    }()
+    
+    let menuCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        return cv
+    }()
     
     lazy var refreshController: UIRefreshControl = {
         let view = UIRefreshControl()
@@ -36,6 +53,7 @@ class ContactsController: UITableViewController {
         super.viewDidLoad()
         
         setupView()
+        menuSetupView()
         setupSearch()
         fetchData()
     }
@@ -45,15 +63,34 @@ class ContactsController: UITableViewController {
         emptyResultView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)
         
         if isFirstLoad == false {
-            tableView?.isSkeletonable = true
-            tableView?.showAnimatedGradientSkeleton(usingGradient: .init(baseColor: .gray, secondaryColor: .lightGray), animation: nil, transition: .crossDissolve(0.2))
+            collectionView.isSkeletonable = true
+            collectionView.showAnimatedGradientSkeleton(usingGradient: .init(baseColor: .gray, secondaryColor: .lightGray), animation: nil, transition: .crossDissolve(0.2))
         }
     }
     
     
     private func setupView() {
-        tableView?.register(ContactCell.self, forCellReuseIdentifier: "cell")
-        tableView?.refreshControl = refreshController
+        sortController.delegate = self
+        view.backgroundColor = .systemBackground
+        
+        view.addSubview(collectionView)
+        view.addSubview(menuCollectionView)
+        
+        menuCollectionView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, bottom: collectionView.topAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 50))
+        collectionView.anchor(top: menuCollectionView.bottomAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, padding: .init(top: 0, left: 0, bottom: 0, right: 0))
+        
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(ContactCell.self, forCellWithReuseIdentifier: "cell")
+        collectionView.refreshControl = refreshController
+    }
+    
+    private func menuSetupView() {
+        menuCollectionView.dataSource = self
+        menuCollectionView.delegate = self
+        menuCollectionView.isPagingEnabled = true
+        menuCollectionView.showsHorizontalScrollIndicator = false
+        menuCollectionView.register(MenuContactCell.self, forCellWithReuseIdentifier: "menuCell")
     }
     
     private func setupSearch() {
@@ -82,10 +119,10 @@ class ContactsController: UITableViewController {
                 
                 self.contacts = json.items!
                 DispatchQueue.main.async {
-                    self.tableView?.stopSkeletonAnimation()
+                    self.collectionView.stopSkeletonAnimation()
                     self.view.hideSkeleton(reloadDataAfter: true, transition: .crossDissolve(0.25))
                     self.isFirstLoad = true
-                    self.tableView?.reloadData()
+                    self.collectionView.reloadData()
                 }
                 
             } catch let error {
@@ -98,62 +135,102 @@ class ContactsController: UITableViewController {
     
 }
 
-// MARK: - tableView delegate and dataSource methods
-extension ContactsController {
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if isFiltering {
-            
-            if resultContacts.isEmpty {
-                view.addSubview(emptyResultView)
-            } else {
-                emptyResultView.removeFromSuperview()
-            }
-            
-            return resultContacts.count
-        }
-        return contacts?.count ?? 10
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContactCell
-        
-        var contact: ContactsItem
-        
-        if isFiltering {
-            contact = resultContacts[indexPath.row]
+// MARK: - collectionView delegate and dataSource methods
+extension ContactsController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView == self.menuCollectionView {
+            return category.count
         } else {
-            contact = contacts?[indexPath.row] ?? ContactsItem(id: "", avatarUrl: "", firstName: "", lastName: "", userTag: "", department: "", position: "", birthday: "", phone: "")
-        }
-        
-        cell.fullName.text = "\(contact.firstName!) \(contact.lastName!)"
-        cell.position.text = contact.position
-        cell.userTag.text = contact.userTag
-        
-        DispatchQueue.global().async {
-            guard let imageUrl = URL(string: contact.avatarUrl ?? "") else { return }
-            guard let imageData = try? Data(contentsOf: imageUrl) else { return }
-            DispatchQueue.main.async {
-                cell.avatar.image = UIImage(data: imageData)
+            if isFiltering {
+                
+                if resultContacts.isEmpty {
+                    view.addSubview(emptyResultView)
+                } else {
+                    emptyResultView.removeFromSuperview()
+                }
+                
+                return resultContacts.count
+            } else if isFilteredByCaregory {
+                return categoryFilterContacts.count
             }
+            return contacts?.count ?? 10
         }
-        
-        cell.birthday.text = dateFormatter(inputDate: contact.birthday ?? "")
-        
-        return cell
     }
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let controller = ProfileController()
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        guard let contact = contacts else { return }
-        
-        controller.contact = contact[indexPath.row]
-        
-        navigationController?.pushViewController(controller, animated: true)
+        if collectionView == self.menuCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "menuCell", for: indexPath) as! MenuContactCell
+            
+            cell.titleLabel.text = category[indexPath.row]
+            
+            if(indexPath.row == 0) {
+                cell.lineView.isHidden = false
+            } else {
+                cell.lineView.isHidden = true
+            }
+            
+            return cell
+        } else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! ContactCell
+            
+            var contact: ContactsItem
+            
+            if isFiltering {
+                contact = resultContacts[indexPath.row]
+            } else if isFilteredByCaregory {
+                contact = categoryFilterContacts[indexPath.item]
+            } else {
+                contact = contacts?[indexPath.row] ?? ContactsItem(id: "", avatarUrl: "", firstName: "", lastName: "", userTag: "", department: "", position: "", birthday: "", phone: "")
+            }
+            
+            cell.fullName.text = "\(contact.firstName!) \(contact.lastName!)"
+            cell.position.text = contact.position
+            cell.userTag.text = contact.userTag
+            
+            DispatchQueue.global().async {
+                guard let imageUrl = URL(string: contact.avatarUrl ?? "") else { return }
+                guard let imageData = try? Data(contentsOf: imageUrl) else { return }
+                DispatchQueue.main.async {
+                    cell.avatar.image = UIImage(data: imageData)
+                }
+            }
+            
+            cell.birthday.text = dateFormatter(inputDate: contact.birthday ?? "")
+            
+            return cell
+        }
     }
     
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 100
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == self.menuCollectionView {
+            if category[indexPath.item] == "Все" {
+                isFilteredByCaregory = false
+                fetchData()
+            } else {
+                isFilteredByCaregory = true
+                sortArrayByPosition(position: category[indexPath.item])
+            }
+        } else {
+            let controller = ProfileController()
+            guard let contact = contacts else { return }
+            
+            if isFilteredByCaregory {
+                controller.contact = categoryFilterContacts[indexPath.item]
+            } else {
+                controller.contact = contact[indexPath.row]
+            }
+            
+            navigationController?.pushViewController(controller, animated: true)
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if collectionView == self.menuCollectionView {
+            return .init(width: textWidth(text: category[indexPath.item], font: .boldSystemFont(ofSize: 16)) + 24, height: 50)
+        } else {
+            return .init(width: self.view.frame.width, height: 100)
+        }
     }
     
 }
@@ -174,6 +251,21 @@ extension ContactsController {
         dateFormatter.locale = Locale(identifier: "ru_RU")
         return dateFormatter.string(from: date)
     }
+    
+    func textWidth(text: String, font: UIFont?) -> Int {
+        let attributes = font != nil ? [NSAttributedString.Key.font: font] : [:]
+        return Int(text.size(withAttributes: attributes).width)
+    }
+    
+    func sortArrayByPosition(position: String) {
+        guard let contacts = contacts else { return }
+        
+        categoryFilterContacts = (contacts.filter({ (contact: ContactsItem) in
+            return contact.position!.lowercased().contains(position.lowercased())
+        }))
+        
+        collectionView.reloadData()
+    }
 }
 
 // MARK: - UISearchResultsUpdating
@@ -190,12 +282,12 @@ extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
             || contact.position!.lowercased().contains(text.lowercased())
         }))!
         
-        tableView?.reloadData()
+        collectionView.reloadData()
         
     }
     
     func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
-        let sortController = SortController()
+        
         let navController = UINavigationController(rootViewController: sortController)
         
         if let sheet = navController.presentationController as? UISheetPresentationController {
@@ -208,8 +300,30 @@ extension ContactsController: UISearchResultsUpdating, UISearchBarDelegate {
 }
 
 
-extension ContactsController: SkeletonTableViewDataSource {
-    func collectionSkeletonView(_ skeletonView: UITableView, cellIdentifierForRowAt indexPath: IndexPath) -> ReusableCellIdentifier {
+extension ContactsController: SkeletonCollectionViewDataSource {
+    func collectionSkeletonView(_ skeletonView: UICollectionView, cellIdentifierForItemAt indexPath: IndexPath) -> ReusableCellIdentifier {
         return "cell"
+    }
+}
+
+extension ContactsController: SortDelegate {
+    func sortedByAlphabet() {
+        if isFilteredByCaregory {
+            categoryFilterContacts = categoryFilterContacts.sorted { $0.firstName ?? "" < $1.firstName ?? "" }
+        } else {
+            contacts = contacts?.sorted { $0.firstName ?? "" < $1.firstName ?? "" }
+        }
+        
+        collectionView.reloadData()
+    }
+    
+    func sortedByBirthday() {
+        if isFilteredByCaregory {
+            categoryFilterContacts = categoryFilterContacts.sorted { $0.birthday ?? "" < $1.birthday ?? "" }
+        } else {
+            contacts = contacts?.sorted { $0.birthday ?? "" < $1.birthday ?? "" }
+        }
+        
+        collectionView.reloadData()
     }
 }
