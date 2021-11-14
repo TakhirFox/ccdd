@@ -56,7 +56,6 @@ class ProfileInfoCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
         setupDisplayViews()
         setupConstaints()
     }
@@ -80,14 +79,16 @@ class ProfileInfoCell: UITableViewCell {
                       trailing: nil,
                       padding: .init(top: 16, left: 16, bottom: 24, right: 16),
                       size: .init(width: 104, height: 104))
+        
         avatar.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         
-        verticalStackView.anchor(top: avatar.bottomAnchor,
+        verticalStackView.anchor(top: nil,
                                  leading: nil,
                                  bottom: nil,
                                  trailing: nil,
                                  padding: .init(top: 0, left: 0, bottom: 0, right: 0),
                                  size: .init(width: 0, height: 0))
+        
         verticalStackView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
 
     }

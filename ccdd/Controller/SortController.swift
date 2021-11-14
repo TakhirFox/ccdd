@@ -13,13 +13,18 @@ protocol SortDelegate: AnyObject {
 }
 
 class SortController: UITableViewController {
-    
     var sortType = [SortedModel(name: "По алфавиту", isSelected: false), SortedModel(name: "По дню рождения", isSelected: false)]
     weak var delegate: SortDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setupViews()
+    }
+    
+}
+
+extension SortController {
+    private func setupViews() {
         title = "Сортировка"
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "backButton"), style: .done, target: self, action: #selector(backButton))
         
@@ -28,6 +33,7 @@ class SortController: UITableViewController {
     }
 }
 
+// MARK: - data source & delegate
 extension SortController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return sortType.count
@@ -63,6 +69,7 @@ extension SortController {
     }
 }
 
+// MARK: - Actions
 extension SortController {
     @objc func backButton() {
         dismiss(animated: true, completion: nil)

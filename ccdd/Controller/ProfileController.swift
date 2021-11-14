@@ -15,7 +15,6 @@ class ProfileController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupView()
         setupBlur()
     }
@@ -36,6 +35,7 @@ extension ProfileController {
     }
 }
 
+// MARK: - Actions
 extension ProfileController {
     @objc func backButton() {
         navigationController?.popViewController(animated: true)
@@ -57,6 +57,9 @@ extension ProfileController {
     }
 }
 
+// MARK: - tableView delegate & data source
+// Нулевая секция для основной информации (аватар/имя/позиция)
+// Первая секция для номера и дата рождения
 extension ProfileController {
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 2
@@ -114,8 +117,6 @@ extension ProfileController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 1 {
-            
-            
             let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             let numberAction = UIAlertAction(title: contact?.phone, style: .default) { _ in
                 self.blurVisualEffectView.removeFromSuperview()

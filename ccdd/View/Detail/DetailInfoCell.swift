@@ -29,7 +29,6 @@ class DetailInfoCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
         setupDisplayViews()
         setupConstaints()
     }
@@ -41,18 +40,36 @@ class DetailInfoCell: UITableViewCell {
     }
     
     private func setupConstaints() {
-        iconView.anchor(top: nil, leading: leadingAnchor, bottom: nil, trailing: contactLabel.leadingAnchor, padding: .init(top: 0, left: 16, bottom: 0, right: 14), size: .init(width: 20, height: 20))
+        iconView.anchor(top: nil,
+                        leading: leadingAnchor,
+                        bottom: nil,
+                        trailing: contactLabel.leadingAnchor,
+                        padding: .init(top: 0, left: 16, bottom: 0, right: 14),
+                        size: .init(width: 20, height: 20))
+        
         iconView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         
-        contactLabel.anchor(top: nil, leading: iconView.trailingAnchor, bottom: nil, trailing: birthdayLabel.leadingAnchor, padding: .init(top: 0, left: 0, bottom: 0, right: 0), size: .init(width: 0, height: 0))
+        contactLabel.anchor(top: nil,
+                            leading: nil,
+                            bottom: nil,
+                            trailing: birthdayLabel.leadingAnchor,
+                            padding: .init(top: 0, left: 0, bottom: 0, right: 0),
+                            size: .init(width: 0, height: 0))
+        
         contactLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         
-        birthdayLabel.anchor(top: nil, leading: contactLabel.trailingAnchor, bottom: nil, trailing: trailingAnchor, padding: .init(top: 0, left: 0, bottom: 0, right: 20), size: .init(width: 0, height: 0))
+        birthdayLabel.anchor(top: nil,
+                             leading: contactLabel.trailingAnchor,
+                             bottom: nil,
+                             trailing: trailingAnchor,
+                             padding: .init(top: 0, left: 0, bottom: 0, right: 20),
+                             size: .init(width: 0, height: 0))
+        
         birthdayLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
 }

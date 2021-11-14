@@ -25,7 +25,6 @@ class MenuContactCell: UICollectionViewCell {
     
     override var isSelected: Bool {
         didSet {
-//            self.contentView.isHidden = isSelected ? false : true
             self.lineView.isHidden = isSelected ? false : true
         }
     }
@@ -33,10 +32,16 @@ class MenuContactCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setupDisplayViews()
+        setupConstaints()
+    }
+    
+    private func setupDisplayViews() {
         addSubview(titleLabel)
         addSubview(lineView)
-        
-        
+    }
+    
+    private func setupConstaints() {
         titleLabel.anchor(top: topAnchor,
                           leading: leadingAnchor,
                           bottom: lineView.topAnchor,
