@@ -7,13 +7,19 @@
 
 import UIKit
 
+protocol SortDelegate: AnyObject {
+    func sortedByAlphabet()
+    func sortedByBirthday()
+}
+
 class SortController: UITableViewController {
     
     var sortType = [SortedModel(name: "По алфавиту", isSelected: false), SortedModel(name: "По дню рождения", isSelected: false)]
+    weak var delegate: SortDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         title = "Сортировка"
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "backButton"), style: .done, target: self, action: #selector(backButton))
         
@@ -42,6 +48,12 @@ extension SortController {
         }
         
         sortType[indexPath.row].isSelected = !sortType[indexPath.row].isSelected
+        
+        if indexPath.row == 0 {
+            delegate?.sortedByAlphabet()
+        } else {
+            delegate?.sortedByBirthday()
+        }
         
         tableView.reloadData()
     }
